@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tableau de bord Administration</title>
+    <!-- Bootstrap CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-white">
+
+<!-- Barre de navigation Admin -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center me-4 text-white" href="{% url 'A_AD:admin-dashboard' %}">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-label="Admin">
+        <path d="M12 3l6 2v6c0 4.5-3.2 8.2-6 9-2.8-.8-6-4.5-6-9V5l6-2z" stroke="currentColor" stroke-width="1.6" />
+        <circle cx="12" cy="12" r="2.2" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 8.8v-.9M12 16.1v-.9M15.2 12h.9M7.9 12h.9M14 10l.6-.6M9.4 14.6l.6-.6M14.6 14.6l-.6-.6M9.4 9.4l.6.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="fw-bold ms-2">Admin</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin"
+      aria-controls="navbarAdmin" aria-expanded="false" aria-label="Menu de navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarAdmin">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link " href="{% url 'A_AD:admin-dashboard' %}">Accueil</a></li>
+        {% if perms.A_AD.view_annonce %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:gestion-annonces' %}">Gestion des annonces</a>
+            </li>
+        {% endif %}
+
+        {% if perms.A_AD.view_article %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:gestion-articles' %}">Gestion des articles</a>
+            </li>
+        {% endif %}
+
+        {% if perms.auth.view_user %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:gestion-utilisateurs' %}">Gestion des utilisateurs</a>
+            </li>
+        {% endif %}
+
+        {% if perms.A_AD.view_contactmessage %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:page-contacts' %}">Contacts</a>
+            </li>
+        {% endif %}
+      </ul>
+
+      <!-- Bouton déconnexion -->
+      <form method="POST" action="{% url 'authentification:logout' %}">
+        {% csrf_token %}
+        <button class="btn btn-outline-light">Déconnexion</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+
+<div class="container py-5">
+    <h2 class="mb-4">Modifier l'article</h2>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm p-4">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="titre" class="form-label">Titre</label>
+                <input type="text" class="form-control" id="titre" name="titre" value="{{ article.titre }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="contenu" class="form-label">Contenu</label>
+                <textarea class="form-control" id="contenu" name="contenu" rows="5" required>{{ article.contenu }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="id_categorie">Catégorie</label>
+                <select name="categorie" id="id_categorie" class="form-select">
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="image" class="form-label">Image</label>
+                <input type="file" class="form-control" id="image" name="image">
+                {% if article.image %}
+                    <img src="{{ article.image.url }}" alt="Image" class="mt-2" width="200">
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="video" class="form-label">Vidéo</label>
+                <input type="file" class="form-control" id="video" name="video">
+                {% if article.video %}
+                    <video src="{{ article.video.url }}" controls width="300" class="mt-2"></video>
+                {% endif %}
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">Modifier</button>
+                <a href="{% url 'A_AD:gestion-articles' %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+<footer class="bg-dark text-white text-center p-3 mt-4  ">
+    <p class="mb-0">Tableau de bord Administration &copy; 2025</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

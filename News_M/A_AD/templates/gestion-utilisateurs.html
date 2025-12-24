@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tableau de bord Administration</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
+    <style>
+        /* Badges pour permissions */
+        .badge-perm {
+            margin: 2px;
+            font-size: 0.8rem;
+        }
+        /* Responsive small buttons */
+        .action-btn {
+            min-width: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center me-4 text-white" href="{% url 'A_AD:admin-dashboard' %}">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-label="Admin">
+        <path d="M12 3l6 2v6c0 4.5-3.2 8.2-6 9-2.8-.8-6-4.5-6-9V5l6-2z" stroke="currentColor" stroke-width="1.6" />
+        <circle cx="12" cy="12" r="2.2" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 8.8v-.9M12 16.1v-.9M15.2 12h.9M7.9 12h.9M14 10l.6-.6M9.4 14.6l.6-.6M14.6 14.6l-.6-.6M9.4 9.4l.6.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="fw-bold ms-2">Admin</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarAdmin">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link" href="{% url 'A_AD:admin-dashboard' %}">Accueil</a></li>
+            {% if perms.A_AD.view_annonce %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'A_AD:gestion-annonces' %}">Gestion des annonces</a></li>
+            {% endif %}
+            {% if perms.A_AD.view_article %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'A_AD:gestion-articles' %}">Gestion des articles</a></li>
+            {% endif %}
+            {% if perms.auth.view_user %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'A_AD:gestion-utilisateurs' %}">Gestion des utilisateurs</a></li>
+            {% endif %}
+            {% if perms.A_AD.view_contactmessage %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'A_AD:page-contacts' %}">Contacts</a></li>
+            {% endif %}
+        </ul>
+
+        <form method="POST" action="{% url 'authentification:logout' %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-light">Déconnexion</button>
+        </form>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="container py-5">
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Liste des utilisateurs</h3>
+        <a href="{% url 'A_AD:ajouter-utilisateur' %}" class="btn btn-success">
+            <i class="bi bi-plus-lg me-1"></i> Ajouter un Utilisateur
+        </a>
+    </div>
+
+    <!-- Tableau utilisateurs -->
+    <div class="table-responsive card p-3 shadow-sm">
+        <table id="usersTable" class="table table-bordered table-hover align-middle">
+            <thead class="table-primary">
+                <tr>
+                    <th>Nom d'utilisateur</th>
+                    <th>Email</th>
+                    <th>Permissions</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for utilisateur in utilisateurs %}
+                    {% if utilisateur.role != 'Super_admin' %}
+                        <tr>
+                            <td>{{ utilisateur.username }}</td>
+                            <td>{{ utilisateur.email }}</td>
+                            <td>
+                                {% if utilisateur.get_all_permissions %}
+                                    {% for perm in utilisateur.get_all_permissions %}
+                                        <span class="badge bg-info text-dark badge-perm">{{ perm }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">Aucune permission</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <!-- Modifier -->
+                                <a href="{% url 'A_AD:modifier-utilisateur' utilisateur.id %}" class="btn btn-warning btn-sm text-white action-btn mb-1">
+                                    <i class="bi bi-pencil-fill me-1"></i> Modifier
+                                </a>
+                                <!-- Supprimer -->
+                                <button type="button" class="btn btn-danger btn-sm action-btn mb-1" data-bs-toggle="modal" data-bs-target="#deleteModal{{ utilisateur.id }}">
+                                    <i class="bi bi-trash-fill me-1"></i> Supprimer
+                                </button>
+
+                                <!-- Modal suppression -->
+                                <div class="modal fade" id="deleteModal{{ utilisateur.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ utilisateur.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title" id="deleteModalLabel{{ utilisateur.id }}">Confirmation</h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                            </div>
+                                            <div class="modal-body text-center">
+                                                Voulez-vous vraiment supprimer <strong>{{ utilisateur.username }}</strong> ?
+                                            </div>
+                                            <div class="modal-footer justify-content-center">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <form method="post" action="{% url 'A_AD:supprimer_utilisateur' utilisateur.id %}">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Aucun utilisateur trouvé</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center p-3 mt-5">
+   Tableau de bord Administration &copy; 2025
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#usersTable').DataTable({
+        "paging": true,
+        "searching": true,
+        "ordering": true,
+        "info": true,
+        "lengthMenu": [5, 10, 25, 50],
+        "language": {
+            "search": "Recherche :",
+            "lengthMenu": "Afficher _MENU_ entrées par page",
+            "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+            "paginate": {
+                "first": "Premier",
+                "last": "Dernier",
+                "next": "Suivant",
+                "previous": "Précédent"
+            },
+            "zeroRecords": "Aucun résultat trouvé"
+        }
+    });
+});
+</script>
+
+</body>
+</html>

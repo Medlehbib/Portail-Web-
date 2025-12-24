@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des commandes</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1 0 auto; /* prend tout l'espace restant */
+        }
+        footer {
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="bg-white">
+
+<!-- Barre de navigation Admin -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center me-4 text-white" href="{% url 'A_AD:admin-dashboard' %}">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-label="Admin">
+        <path d="M12 3l6 2v6c0 4.5-3.2 8.2-6 9-2.8-.8-6-4.5-6-9V5l6-2z" stroke="currentColor" stroke-width="1.6" />
+        <circle cx="12" cy="12" r="2.2" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 8.8v-.9M12 16.1v-.9M15.2 12h.9M7.9 12h.9M14 10l.6-.6M9.4 14.6l.6-.6M14.6 14.6l-.6-.6M9.4 9.4l.6.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <span class="fw-bold ms-2">Admin</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin"
+      aria-controls="navbarAdmin" aria-expanded="false" aria-label="Menu de navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarAdmin">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link " href="{% url 'A_AD:admin-dashboard' %}">Accueil</a></li>
+        {% if perms.A_AD.view_annonce %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:gestion-annonces' %}">Gestion des annonces</a>
+            </li>
+        {% endif %}
+
+        {% if perms.A_AD.view_article %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:gestion-articles' %}">Gestion des articles</a>
+            </li>
+        {% endif %}
+
+        {% if perms.auth.view_user %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:gestion-utilisateurs' %}">Gestion des utilisateurs</a>
+            </li>
+        {% endif %}
+
+        {% if perms.A_AD.view_contactmessage %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'A_AD:page-contacts' %}">Contacts</a>
+            </li>
+        {% endif %}
+      </ul>
+
+      <form method="POST" action="{% url 'authentification:logout' %}">
+        {% csrf_token %}
+        <button class="btn btn-outline-light">Déconnexion</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<main class="container my-5">
+    <h3>Liste des commandes</h3>
+    <table id="commandesTable" class="table table-striped table-hover mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Annonce</th>
+                <th>Email</th>
+                <th>Description</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for commande in commandes %}
+            <tr>
+                <td>{{ commande.id }}</td>
+                <td>{{ commande.annonce.titre }}</td>
+                <td>{{ commande.email }}</td>
+                <td>{{ commande.message }}</td>
+                <td>{{ commande.date_commande|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">Aucune commande</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</main>
+
+<footer class="bg-dark text-white text-center p-3">
+    <p>&copy; 2025 Tous droits réservés</p>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('#commandesTable').DataTable({
+        "paging": true,
+        "searching": true,
+        "ordering": true,
+        "info": true,
+        "lengthMenu": [5, 10, 25, 50],
+        "language": {
+            "search": "Recherche:",
+            "lengthMenu": "Afficher _MENU_ entrées par page",
+            "info": "Affichage de _START_ à _END_ sur _TOTAL_ entrées",
+            "paginate": {
+                "first": "Premier",
+                "last": "Dernier",
+                "next": "Suivant",
+                "previous": "Précédent"
+            },
+            "zeroRecords": "Aucun résultat trouvé"
+        }
+    });
+});
+</script>
+</body>
+</html>

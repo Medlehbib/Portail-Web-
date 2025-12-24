@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Super Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card p-4 shadow " style="width: 100%; max-width: 400px;">
+        <h3 class="text-center  mb-4 card p-3 text-white bg-primary">Connexion  Admin</h3>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="mb-3">
+                <label for="id_username">Nom d'utilisateur</label>
+                <input type="text" name="username" id="id_username"  autocomplete="username" class="form-control" required>
+                {{ form.username.errors }}
+            </div>
+
+            <div class="mb-3">
+                <label for="id_password">Mot de passe</label>
+                <input type="password" name="password" id="id_password" autocomplete="current-password" class="form-control" required>
+                {{ form.password.errors }}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+            <a class="btn btn-light mt-2" style="width: 100%" href="{% url 'A_AD:home' %}">Mode Visiteur</a>
+
+        </form>
+    </div>
+</div>
+<script>
+    // بعد نجاح تسجيل الدخول
+    localStorage.setItem('username', '{{ request.user.username }}');
+    localStorage.setItem('role', '{{ request.user.role }}');
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
